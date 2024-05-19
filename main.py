@@ -1,10 +1,13 @@
 import requests
 import schedule
 import time
+import os
+from dotenv import load_dotenv, find_dotenv
 from bs4 import BeautifulSoup
 
+load_dotenv(find_dotenv())
 
-URL = 'https://luxuryforless.pl/przedsprzedaz'
+URL = os.environ.get("URL")
 prev_list = []
 
 
@@ -42,6 +45,7 @@ def extract_product_info(content):
 
 
 def print_list(list):
+    print("Scraping results:")
     for item in list:
         print(f"{item['name']} - {item['price']} PLN\n {item['link']}")
 
@@ -51,16 +55,19 @@ def compare_lists(list_1, list_2):
 
 
 def scrape_and_compare():
-    print("Scraping results:")
     global prev_list
-    content = request_content(URL)
-    new_product_list = extract_product_info(content)
-    new_products = compare_lists(new_product_list, prev_list)
-    print_list(new_products)
-    prev_list = new_product_list
+    try:
+        content = request_content(URL)
+        new_product_list = extract_product_info(content)
+        new_products = compare_lists(new_product_list, prev_list)
+        print_list(new_products)
+        prev_list = new_product_list
+    except Exception as error:
+        print("An error occured", error)
 
 
-schedule.every(1).minutes.do(scrape_and_compare)
+scrape_and_compare()
+schedule.every(30).minutes.do(scrape_and_compare)
 
 while True:
     schedule.run_pending()
