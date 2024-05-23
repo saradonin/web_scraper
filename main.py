@@ -4,6 +4,7 @@ import time
 import os
 from dotenv import load_dotenv, find_dotenv
 from bs4 import BeautifulSoup
+from send_email import send_email
 
 load_dotenv(find_dotenv())
 
@@ -61,6 +62,7 @@ def scrape_and_compare():
         new_product_list = extract_product_info(content)
         new_products = compare_lists(new_product_list, prev_list)
         print_list(new_products)
+        print(new_products)
         prev_list = new_product_list
     except Exception as error:
         print("An error occured", error)
