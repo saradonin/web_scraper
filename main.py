@@ -45,31 +45,26 @@ def extract_product_info(content):
     return product_list
 
 
-def print_list(list):
-    print("Scraping results:")
-    for item in list:
-        print(f"{item['name']} - {item['price']} PLN\n {item['link']}")
-
-
-def compare_lists(list_1, list_2):
-    return [item for item in list_1 if item not in list_2]
-
-
 def scrape_and_compare():
     global prev_list
     try:
         content = request_content(URL)
-        new_product_list = extract_product_info(content)
-        new_products = compare_lists(new_product_list, prev_list)
-        print_list(new_products)
-        print(new_products)
-        prev_list = new_product_list
+        product_list = extract_product_info(content)
+        print("Scrapped successfully!")
+
+        new_products = [item for item in product_list if item not in prev_list]
+        if new_products:
+            send_email(new_products)
+            prev_list = product_list
+        else:
+            print("Nothing new")
+
     except Exception as error:
         print("An error occured", error)
 
 
 scrape_and_compare()
-schedule.every(30).minutes.do(scrape_and_compare)
+schedule.every(2).minutes.do(scrape_and_compare)
 
 while True:
     schedule.run_pending()
