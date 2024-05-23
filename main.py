@@ -64,7 +64,7 @@ def scrape_and_compare():
 
 
 scrape_and_compare()
-schedule.every(2).minutes.do(scrape_and_compare)
+schedule.every(30).minutes.do(scrape_and_compare)
 
 while True:
     schedule.run_pending()
