@@ -50,7 +50,7 @@ def scrape_and_compare():
     try:
         content = request_content(URL)
         product_list = extract_product_info(content)
-        print("Scrapped successfully!")
+        print("Scraped successfully!")
 
         new_products = [item for item in product_list if item not in prev_list]
         if new_products:
