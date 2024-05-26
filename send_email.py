@@ -4,6 +4,7 @@ from dotenv import load_dotenv, find_dotenv
 from bs4 import BeautifulSoup
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formataddr
 
 load_dotenv(find_dotenv())
 
@@ -25,7 +26,7 @@ def generate_email_content(items):
                 {list_items_html}
             </ul>
             <br>
-            <p>Email sent from Web Scrapper App by saradonin</p>
+            <p>Email sent from Web Scraper App by saradonin</p>
         </body>
     </html>
     """
@@ -41,13 +42,16 @@ def send_email(list):
     html_content = generate_email_content(list)
 
     # Initialize the SMTP server
-    server = smtplib.SMTP_SSL('smtp.googlemail.com', 465)
-    server.login(sender_email, sender_password)
+    try:
+        server = smtplib.SMTP_SSL('smtp.googlemail.com', 465)
+        server.login(sender_email, sender_password)
+    except Exception as error:
+        print("Something went wrong: ", error)
 
     for receiver_email in receiver_emails:
         msg = MIMEMultipart('alternative')
         msg['Subject'] = "New items in stock"
-        msg['From'] = sender_email
+        msg['From'] = formataddr(('Luxury Web Scraper', sender_email))
         msg['To'] = receiver_email
 
         # Attach the HTML content
