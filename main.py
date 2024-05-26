@@ -1,29 +1,13 @@
 import requests
 import os
-import csv
 from dotenv import load_dotenv, find_dotenv
 from bs4 import BeautifulSoup
 from send_email import send_email
+from csv_utils import load_prev_list, save_list_to_csv
 
 load_dotenv(find_dotenv())
 
 URL = os.environ.get("URL")
-CSV_FILE = 'prev_product_list.csv'
-
-
-def load_prev_list():
-    if os.path.exists(CSV_FILE):
-        with open(CSV_FILE, mode='r', newline='', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            return [row for row in reader]
-    return []
-
-
-def save_list_to_csv(product_list):
-    with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.DictWriter(file, fieldnames=["name", "price", "link"])
-        writer.writeheader()
-        writer.writerows(product_list)
 
 
 def request_content(url):
@@ -51,22 +35,24 @@ def extract_product_info(content):
 
         product = {
             "name": name_title,
-            "link": name_href,
-            "price": price_text
+            "price": price_text,
+            "link": name_href
         }
         product_list.append(product)
 
     return product_list
 
 
-def scrape_and_compare():
-    prev_list = load_prev_list()
+def scrape_and_compare(prev_list):
     try:
         content = request_content(URL)
         product_list = extract_product_info(content)
         print("Scraped successfully!")
 
-        new_products = [item for item in product_list if item not in prev_list]
+        exclude_words = ["alhambra", "armaf", "paris corner", "zimaya"]
+        new_products = [item for item in product_list if item not in prev_list
+                        and not any(word in item['name'].lower() for word in exclude_words)]
+
         if new_products:
             send_email(new_products)
             save_list_to_csv(product_list)
@@ -78,7 +64,8 @@ def scrape_and_compare():
 
 
 def main():
-    scrape_and_compare()
+    prev_list = load_prev_list()
+    scrape_and_compare(prev_list)
 
 
 if __name__ == "__main__":
