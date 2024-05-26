@@ -1,7 +1,6 @@
 import requests
-import schedule
-import time
 import os
+import csv
 from dotenv import load_dotenv, find_dotenv
 from bs4 import BeautifulSoup
 from send_email import send_email
@@ -9,7 +8,22 @@ from send_email import send_email
 load_dotenv(find_dotenv())
 
 URL = os.environ.get("URL")
-prev_list = []
+CSV_FILE = 'prev_product_list.csv'
+
+
+def load_prev_list():
+    if os.path.exists(CSV_FILE):
+        with open(CSV_FILE, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            return [row for row in reader]
+    return []
+
+
+def save_list_to_csv(product_list):
+    with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=["name", "price", "link"])
+        writer.writeheader()
+        writer.writerows(product_list)
 
 
 def request_content(url):
@@ -46,26 +60,26 @@ def extract_product_info(content):
 
 
 def scrape_and_compare():
-    global prev_list
+    prev_list = load_prev_list()
     try:
         content = request_content(URL)
         product_list = extract_product_info(content)
-        print("Scrapped successfully!")
+        print("Scraped successfully!")
 
         new_products = [item for item in product_list if item not in prev_list]
         if new_products:
             send_email(new_products)
-            prev_list = product_list
+            save_list_to_csv(product_list)
         else:
             print("Nothing new")
 
     except Exception as error:
-        print("An error occured", error)
+        print("An error occured: ", error)
 
 
-scrape_and_compare()
-schedule.every(30).minutes.do(scrape_and_compare)
+def main():
+    scrape_and_compare()
 
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+
+if __name__ == "__main__":
+    main()
