@@ -57,7 +57,7 @@ def scrape_and_compare(prev_list):
             send_email(new_products)
             save_list_to_csv(product_list)
         else:
-            print("Nothing new")
+            print("Nothing new.")
 
     except Exception as error:
         print("An error occured: ", error)
